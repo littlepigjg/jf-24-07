@@ -9,6 +9,10 @@ import type {
   QrCodeStats,
   PagedResult,
   ApiResponse,
+  TestScenario,
+  TestRun,
+  PerformanceReport,
+  CreateScenarioRequest,
 } from "@shared/types";
 
 const API_BASE = "/api";
@@ -138,5 +142,43 @@ export const api = {
     if (params?.page) q.set("page", String(params.page));
     if (params?.pageSize) q.set("pageSize", String(params.pageSize));
     return request<PagedResult<BatchTask>>(`/export/tasks${q.toString() ? `?${q.toString()}` : ""}`);
+  },
+
+  listBenchmarkScenarios(): Promise<TestScenario[]> {
+    return request<TestScenario[]>("/benchmark/scenarios");
+  },
+
+  getBenchmarkScenario(id: string): Promise<TestScenario> {
+    return request<TestScenario>(`/benchmark/scenarios/${id}`);
+  },
+
+  createBenchmarkScenario(data: CreateScenarioRequest): Promise<TestScenario> {
+    return request<TestScenario>("/benchmark/scenarios", { method: "POST", body: JSON.stringify(data) });
+  },
+
+  deleteBenchmarkScenario(id: string): Promise<void> {
+    return request<void>(`/benchmark/scenarios/${id}`, { method: "DELETE" });
+  },
+
+  runBenchmarkScenario(scenarioId: string, overrides?: Record<string, unknown>): Promise<TestRun> {
+    return request<TestRun>("/benchmark/run", { method: "POST", body: JSON.stringify({ scenarioId, overrides }) });
+  },
+
+  cancelBenchmarkRun(runId: string): Promise<void> {
+    return request<void>(`/benchmark/run/${runId}/cancel`, { method: "POST" });
+  },
+
+  listBenchmarkRuns(scenarioId?: string): Promise<TestRun[]> {
+    const q = new URLSearchParams();
+    if (scenarioId) q.set("scenarioId", scenarioId);
+    return request<TestRun[]>(`/benchmark/runs${q.toString() ? `?${q.toString()}` : ""}`);
+  },
+
+  getBenchmarkRun(runId: string): Promise<TestRun> {
+    return request<TestRun>(`/benchmark/runs/${runId}`);
+  },
+
+  getBenchmarkReport(runId: string): Promise<PerformanceReport> {
+    return request<PerformanceReport>(`/benchmark/runs/${runId}/report`);
   },
 };
